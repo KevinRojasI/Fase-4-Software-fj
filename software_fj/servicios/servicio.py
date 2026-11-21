@@ -28,15 +28,15 @@ class Servicio(EntidadBase, ABC):
         self.tarifa_base = tarifa_base           # Pasa por el setter con validación
         self._disponible = bool(disponible)      # Estado de disponibilidad (privado)
 
-    # ------------------------------------------------------------------
     # Encapsulación: propiedades con validación estricta
-    # ------------------------------------------------------------------
     @property
     def nombre(self) -> str:
+        # Getter: devuelve el valor almacenado en el atributo "privado" _nombre
         return self._nombre
 
     @nombre.setter
     def nombre(self, valor: str) -> None:
+        # Antes de guardar, se valida que sea texto y tenga al menos 3 caracteres
         if not isinstance(valor, str) or len(valor.strip()) < 3:
             raise ParametroInvalidoError(
                 "El nombre del servicio debe ser texto de al menos 3 caracteres.")
@@ -44,21 +44,26 @@ class Servicio(EntidadBase, ABC):
 
     @property
     def tarifa_base(self) -> float:
+        # Getter: devuelve el valor almacenado en _tarifa_base
         return self._tarifa_base
 
     @tarifa_base.setter
     def tarifa_base(self, valor: float) -> None:
+        # Reutiliza el validador genérico de números positivos
         self._tarifa_base = self._validar_numero_positivo(valor, "tarifa_base")
 
     @property
     def disponible(self) -> bool:
+        # Solo lectura desde afuera: para cambiarlo se usan los métodos de abajo
         return self._disponible
 
     def marcar_disponible(self) -> None:
+        # Cambia el estado interno y deja constancia en el log
         self._disponible = True
         logger.info("Servicio %s marcado como disponible.", self.id)
 
     def marcar_no_disponible(self) -> None:
+        # Cambia el estado interno y deja constancia en el log
         self._disponible = False
         logger.info("Servicio %s marcado como NO disponible.", self.id)
 
@@ -67,15 +72,16 @@ class Servicio(EntidadBase, ABC):
         self.nombre = self._nombre               # El setter vuelve a validar el nombre
         self.tarifa_base = self._tarifa_base     # El setter vuelve a validar la tarifa
 
-    # ------------------------------------------------------------------
     # Utilidades de validación reutilizables por las clases hijas
-    # ------------------------------------------------------------------
     @staticmethod
     def _validar_numero_positivo(valor, campo: str) -> float:
         """Verifica que ``valor`` sea un número real, finito y mayor que cero."""
+        # isinstance(valor, bool) se revisa aparte porque en Python bool es subclase de int/Real,
+        # y no queremos aceptar True/False como si fueran números válidos
         if isinstance(valor, bool) or not isinstance(valor, Real):
             raise ParametroInvalidoError(
                 f"'{campo}' debe ser numérico; se recibió {type(valor).__name__}.")
+        # math.isfinite descarta valores como inf o NaN
         if not math.isfinite(valor) or valor <= 0:
             raise ParametroInvalidoError(f"'{campo}' debe ser un número mayor que cero.")
         return float(valor)
@@ -95,9 +101,7 @@ class Servicio(EntidadBase, ABC):
             raise ServicioNoDisponibleError(
                 f"El servicio '{self.nombre}' ({self.id}) no está disponible.")
 
-    # ------------------------------------------------------------------
     # Métodos abstractos: cada servicio hijo los sobrescribe (polimorfismo)
-    # ------------------------------------------------------------------
     @abstractmethod
     def calcular_costo_base(self, duracion: float) -> float:
         """Costo sin impuestos ni descuentos, según las reglas del servicio."""
@@ -110,9 +114,7 @@ class Servicio(EntidadBase, ABC):
     def describir(self) -> str:
         """Descripción legible del servicio."""
 
-    # ------------------------------------------------------------------
     # Métodos sobrecargados (variantes del cálculo de costos)
-    # ------------------------------------------------------------------
     def calcular_costo(self, duracion, impuesto: float = 0.0,
                        descuento: float = 0.0, **opciones) -> float:
         """Costo total = base * (1 - descuento) * (1 + impuesto).
@@ -151,6 +153,7 @@ class Servicio(EntidadBase, ABC):
     def calcular_costo_con_impuesto(self, duracion, impuesto: float | None = None,
                                     **opciones) -> float:
         """Variante: aplica solo impuesto (IVA por defecto si no se indica)."""
+        # Si no se pasa impuesto explícito, se usa el IVA por defecto de la clase
         tasa = self.IVA_POR_DEFECTO if impuesto is None else impuesto
         return self.calcular_costo(duracion, impuesto=tasa, **opciones)
 
@@ -161,4 +164,5 @@ class Servicio(EntidadBase, ABC):
                                    descuento=descuento, **opciones)
 
     def __repr__(self) -> str:
+        # Representación útil para depuración (ej: al imprimir en consola o en debugger)
         return f"{type(self).__name__}(id={self.id!r}, nombre={self.nombre!r})"
