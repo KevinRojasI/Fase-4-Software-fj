@@ -21,7 +21,7 @@ python demo_servicios.py
 |---|---|---|
 | Kevin David Rojas Ibarra | Servicio + servicios hijos + Reserva + excepciones, logs e integración | KevinRojasI |
 | Arleth Juliana Ramirez Huertas | entidad abstracta + Cliente + `main.py` + README + pruebas | ajramirezzh-arch |
-
+| Santiago Rios Bonilla | main.py, Test | riosbonilla93-art |
 ## Aporte de Kevin David Rojas Ibarra
 
 ### 1. Clase abstracta `Servicio` y servicios hijos
@@ -44,3 +44,17 @@ python demo_servicios.py
 python demo_servicios.py
 python demo_reservas.py
 ```
+
+## Aporte de Santiago Rios
+
+### 1. Programa principal y menú interactivo (`main.py`)
+- `main.py`: implementación del punto de entrada del sistema mediante un menú interactivo en consola (`while True` e `input()`) para gestionar clientes, servicios (salas, equipos y asesorías) y el ciclo completo de reservas en memoria (sin bases de datos).
+- **Control robusto de errores:** encapsulamiento de todas las entradas del usuario y llamadas a la lógica de negocio mediante bloques `try / except / else / finally`, capturando tanto errores de entrada (`ValueError`, `IndexError`) como las excepciones personalizadas del dominio (`ErrorSoftwareFJ` y derivadas) para evitar cierres inesperados y garantizar el registro automático en `logs/software_fj.log`.
+- **Simulación automática obligatoria:** integración de la rutina de simulación de 10 operaciones completas (combinando registros válidos e inválidos de clientes, creación correcta e incorrecta de servicios y reservas exitosas y fallidas), demostrando la estabilidad y resiliencia del sistema ante fallos.
+
+### 2. Suite de pruebas unitarias (`tests/`)
+- `tests/test_sistema.py`: desarrollo de las pruebas automatizadas utilizando la librería estándar `unittest` para verificar la integridad y el correcto funcionamiento de todo el modelo orientado a objetos.
+- **Cobertura de validación:**
+  - Creación exitosa de instancias de `Cliente` y verificación del lanzamiento de `ClienteInvalidoError` ante datos mal formados (correos inválidos, documentos o campos vacíos).
+  - Validación del comportamiento polimórfico y métodos sobrecargados en el cálculo de costos (`calcular_costo`, con impuestos y descuentos) para `ReservaSala`, `AlquilerEquipo` y `AsesoriaEspecializada`.
+  - Pruebas de flujo de estados y manejo de excepciones en `Reserva` (confirmación, cancelación, procesamiento y bloqueo de operaciones no permitidas).
